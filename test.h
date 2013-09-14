@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <cassert>
 
 #include "ga.h"
 #include "ioga.h"

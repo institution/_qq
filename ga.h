@@ -3,6 +3,7 @@
 #define GA_H
 
 #include <cmath>
+#include <cassert>
 
 #include "defs.h"
 
@@ -41,12 +42,46 @@ struct Vector {
 		struct {Real x, y, z;};
 		struct {Real e1, e2, e3;};
 		struct {Real r, g, b;};
+		Real fs[3];
 	};
+	
+	inline Real &operator[](int i) {
+		assert(0 <= i);
+		assert(i < 3);
+		return this->fs[i];
+	}
+	
+	inline const Real &operator[](int i) const {
+		assert(0 <= i);
+		assert(i < 3);
+		return this->fs[i];
+	}
+	
+	
+	
 	
 	Vector() {  x = y = z = 0; }
 	Vector(Real xx, Real yy, Real zz) { x = xx; y = yy; z = zz; }
 	
 };
+
+
+inline Real max(const Vector& v) {
+	Real r = v[0];
+	for (int i=1; i<3; ++i) {
+		if (v[i] > r) r = v[i];
+	}
+	return r;	
+}
+
+inline Real min(const Vector& v) {
+	Real r = v[0];
+	for (int i=1; i<3; ++i) {
+		if (v[i] < r) r = v[i];
+	}
+	return r;
+}
+
 
 inline void mov(Vector &a, const Real x, const Real y, const Real z) {
 	a.x = x; a.y = y; a.z = z;

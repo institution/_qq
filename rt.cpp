@@ -7,6 +7,7 @@ using namespace std;
 
 Real INF = std::numeric_limits<Real>::infinity();
 Real EPSILON = std::numeric_limits<Real>::epsilon();
+Real EPS = std::numeric_limits<Real>::epsilon();
 
 
 typedef Vector Point;
@@ -144,65 +145,128 @@ void normal(Vector &n, Point &p, Elem &s) {
 	s.normal(n, p);
 }
 
+void AABB::fintersect(Real &f, Ray &y) {
+	fintersect_aabb(f, y, r, center);	
+}
+
+void AABB::normal(Vector &n, Point &p) {
+	
+	sub(n, p, center);
+	
+	//cout << '&' << n << endl;
+	//cout << '&' << r << endl;
+	
+	for (int i=0; i<3; ++i) {
+		if (abs(n[i]) >= (r[i] - 0.0001)) {
+			
+		} else {
+			n[i] = 0.0;
+		}
+	}
+	
+	normalize(n, n);
+	//cout << n << endl;
+	
+}
+	
+
+void fintersect_aabb(Real &f, const Ray &y, const Vector &r, const Point &c) {
+	// assert y._dir is normalized
+	
+	Vector cp;
+	sub(cp, c, y._pos);
+	
+	const Vector &v = y._dir;
+		
+	Vector a, b;
+	Real k,l;
+	
+	int i = 0;
+	while (i < 3) {
+		if (v[i] < 0) {
+			a[i] = (cp[i] + r[i]) / v[i];
+			b[i] = (cp[i] - r[i]) / v[i];
+		}
+		else if (v[i] > 0) {
+			a[i] = (cp[i] - r[i]) / v[i];
+			b[i] = (cp[i] + r[i]) / v[i];			
+		}
+		else if (v[i] == 0) {
+			if (abs(cp[i]) < r[i]) {
+				a[i] = -INF;
+				b[i] = INF;				
+			}
+			else {
+				//a[i] = INF;
+				//b[i] = -INF;
+				f = INF;
+				return;
+			}
+		}
+			
+		i += 1;
+	}
+
+	Real max_a = max(a);
+	Real min_b = min(b);
+	
+	//std::cout << "a=" << a << std::endl;
+	//std::cout << "b=" << b << std::endl;
+
+	if (max_a < min_b && max_a > 0) {
+		f = max_a / v.x;
+		//Real max_a2 = max_a *max_a;
+		//f = sqrt(v.x * v.x * max_a2 + v.y * v.y * max_a2 + v.z * v.z * max_a2);
+		
+	} else {
+		f = INF;
+	}
+
+}
 
 void Sphere::fintersect(Real &f, Ray &y) {
-	
-	Real icpd, delta, sq_d, cp2;
+
 	Vector cp;
-				
-	sub(cp, this->center(), y.pos());
-	inn(icpd, cp, y.dir());
-	mul2(cp2, cp);
-	delta = this->radius2() - cp2 + icpd*icpd;
+	sub(cp, c, y.pos());
 	
+	Real icpd;
+	inn(icpd, cp, y.dir());
+	
+	Real cp2;
+	mul2(cp2, cp);
+	
+	Real delta = r2 - cp2 + icpd*icpd;
+
 	if (delta < 0) {
 		f = INF;
 	}
 	else {
 		f = icpd - sqrt(delta);
 	}
-		
 }
 
-void fintersect(Real &f1, Real &f2, Ray &y, Sphere &s) {
-	// y.dir must be normalized
-	
-	// f = (c-p)|inv(d) +- sqrt( ((c-p)^inv(d))**2 + rr inv(d)inv(d) )
-	// delta = ((c-p)^inv(d))**2 + r r inv(d) inv(d)
-	// f = (c-p)|inv(d) -+ sqrt(delta)
-	
-	// cp = c-p
-	// r2 = r*r
-	// d2 = d*d
-	// delta =  ((cp^d)**2 / d2 + r2)/d2 
-	// f = d2*(cp|d) -+ sqrt(delta)
-	
-	Real icpd, delta, sq_d, cp2;
+/*
+void Sphere::fintersect(Real &f, Ray &y) {
+
 	Vector cp;
-				
-	sub(cp, s.center(), y.pos());
-	inn(icpd, cp, y.dir());
-	mul2(cp2, cp);
-	delta = s.radius2() - cp2 + icpd*icpd;
+	sub(cp, this->center(), y.pos());
 	
+	Real icpd;
+	inn(icpd, cp, y.dir());
+	
+	Real cp2;
+	mul2(cp2, cp);
+	
+	Real delta = this->radius2() - cp2 + icpd*icpd;
+
 	if (delta < 0) {
-		f1 = INF;
-		f2 = INF;		
-	}
-	if (delta == 0) {
-		f1 = icpd - sqrt(delta);
-		f2 = INF;
+		f = INF;
 	}
 	else {
-		sq_d = sqrt(delta);
-		f1 = icpd - sq_d;
-		f2 = icpd + sq_d;
+		f = icpd - sqrt(delta);
 	}
-		
-	//printf("r2=%f c2=%f b2=%f bc=%f\n", r2, c2, b2, bc);
-	//printf("delta = %f\n", delta);
-	
-}
+}*/
+
 
 void point_on_ray(Point &p, Ray &y, Real f) {
 	mul(p, y.dir(), f);
@@ -213,17 +277,19 @@ void point_on_ray(Point &p, Ray &y, Real f) {
 
 
 
-void find_intersect(Real &f, uint &ii, Ray &y, Elems &xs) {
-	Real f1, f2;
+void find_intersect(Real &f, int &ii, Ray &y, Elems &xs, int skip) {
+	Real f1;
 		
 	f = INF;	
-	for (uint i = 0; i < xs.size(); ++i) 
+	for (int i = 0; i < xs.size(); ++i) 
 	{
-		xs[i]->fintersect(f1, y);
-		
-		if (EPSILON < f1 && f1 < f) {
-			f = f1;
-			ii = i;
+		if (i != skip) {
+			xs[i]->fintersect(f1, y);
+			
+			if (EPSILON < f1 && f1 < f) {
+				f = f1;
+				ii = i;
+			}
 		}
 	}	
 }
@@ -233,9 +299,9 @@ Point light(-700.0, 1000.0, 400.0);
 
 
 void trace(Color &rcol, Ray &y, Elems &xs) {
-	Real f; uint ii;
+	Real f; int ii;
 	
-	find_intersect(f, ii, y, xs);
+	find_intersect(f, ii, y, xs, -1);
 	
 	if (f == INF) {
 		mov(rcol, blue);
@@ -265,9 +331,9 @@ void trace(Color &rcol, Ray &y, Elems &xs) {
 			mov(rcol, black);
 		}
 		else {
-			Real f2; uint ii2;
+			Real f2; int ii2;
 			//trace(shadow_col, shadow, objs);
-			find_intersect(f2, ii2, shadow, xs);
+			find_intersect(f2, ii2, shadow, xs, ii);
 			
 			if (f2 < INF) {
 				mov(rcol, black);

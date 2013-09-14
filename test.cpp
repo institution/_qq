@@ -2,6 +2,47 @@
 
 Real EPS = std::numeric_limits<Real>::epsilon();
 
+
+void test_fintersect_aabb() {
+	Real f = -123;
+	
+	fintersect_aabb(f, 
+		Ray(Vector(-1,0,0), Point(10,0.4,0.2)), 
+		Vector(1,1,1),
+		Point(1,0,0)
+	);	
+	
+	cout <<  f << endl;
+	assert(f == 8.0);
+	
+	
+	fintersect_aabb(f, 
+		Ray(Vector(-1,-1,0), Point(2,1,0)), 
+		Vector(1,1,1),
+		Point(0,0,0)
+	);	
+	
+	cout <<  f << '|' << sqrt(2.0) << endl;
+	assert(abs(f - sqrt(2.0)) < EPS);
+		
+}
+
+
+void test_fintersect_aabb_miss() {
+	
+	Real f = -123;
+	
+	fintersect_aabb(f, 
+		Ray(Vector(-1,0,0), Point(10,1.1,0.2)), 
+		Vector(1,1,1),
+		Point(1,0,0)
+	);	
+	
+	cout <<  f << endl;
+	assert(f == INF);
+		
+}
+
 void test_rotate() {
 	
 	Rotor r;
@@ -62,6 +103,7 @@ void test_parallelogram2() {
 	assert(f == 5.0);
 }
 
+/*
 void test_fintersect() {
 	
 	// f = -(p-c)|d / dd +- sqrt(((p-c)^d)**2 + dd rr) / dd
@@ -83,7 +125,7 @@ void test_fintersect() {
 	assert(f2 < INF);
 	assert(f2 == 3.0);
 	
-}
+}*/
 
 void test_inn(){
 	Vector a, b;
@@ -183,11 +225,13 @@ byte do_test = 0;
 
 
 void test(){
+	TEST(test_fintersect_aabb_miss);
+	TEST(test_fintersect_aabb);
 	TEST(test_rotate);
 	TEST(test_fintersect_plane);
 	TEST(test_parallelogram);
 	TEST(test_parallelogram2);
-	TEST(test_fintersect);
+	//TEST(test_fintersect);
 	TEST(test_out);
 	TEST(test_inn);
 	TEST(test_normalize);

@@ -2,6 +2,7 @@
 #ifndef RT_H
 #define RT_H
 
+#include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
 #include <cmath>
@@ -11,6 +12,7 @@
 #include <memory>
 
 #include "ga.h"
+#include "ioga.h"
 #include "defs.h"
 #include "elem.h"
 #include "color.h"
@@ -32,11 +34,11 @@ class Sphere: public Elem {
 	Sphere() { col = white; }
 	
 	Sphere(Point &pos, Real radius) {
-		col = white;
-		
 		c = pos;
 		r = radius;
-		fr();
+		r2 = r*r;
+		
+		col = white;
 	}
 	
 	// getters
@@ -111,18 +113,56 @@ class Parallelogram: public Elem {
 
 };
 
+
+
+
+class AABB: public Elem {
+	
+	// geometry
+	Vector r;
+	Point center;
+	
+	public:
+	
+	AABB() {}
+	
+	AABB(const Vector &r, const Point &center) {
+		mov(this->r, r);
+		mov(this->center, center);
+	}
+		
+	void fintersect(Real &f, Ray &y);
+	void normal(Vector &n, Point &p);		
+	Color& color() { return yellow; }	
+
+};
+
+
 void fintersect_plane(Real &f, Point &c, Vector &a, Vector &b, Point &p, Vector &d);
 void fintersect(Real &f1, Real &f2, Ray &y, Sphere &s);
 void normal(Vector &n, Point &p, Elem &s);
 void point_on_ray(Point &p, Ray &y, Real f);
-void find_intersect(Real &f, uint &ii, Ray &y, Elems &xs);
+void find_intersect(Real &f, int &ii, Ray &y, Elems &xs, int skip);
 
+void fintersect_aabb(Real &f, const Ray &y, const Point &c, const Vector &r);
 
 
 
 
 
 void trace(Color &rcol, Ray &y, Elems &xs);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #endif
