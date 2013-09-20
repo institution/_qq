@@ -1,6 +1,6 @@
 #include "test.h"
 
-Real EPS = std::numeric_limits<Real>::epsilon();
+extern Real EPS; // = std::numeric_limits<Real>::epsilon();
 
 
 void test_fintersect_aabb() {
@@ -17,7 +17,7 @@ void test_fintersect_aabb() {
 	
 	
 	fintersect_aabb(f, 
-		Ray(Vector(-1,-1,0), Point(2,1,0)), 
+		Ray(Vector(-1.0/sqrt(2.0),-1.0/sqrt(2.0),0), Point(2,1,0)), 
 		Vector(1,1,1),
 		Point(0,0,0)
 	);	
@@ -197,7 +197,7 @@ void test_point_on_ray() {
 }
 
 void test_find_intersect() {
-	Real f; uint i; Ray y; Elems xs;
+	Real f; int i; Ray y; Elems xs;
 	
 	xs.resize(2);
 	xs[0].reset(new Sphere());
@@ -208,7 +208,7 @@ void test_find_intersect() {
 	
 	y.pos(-8,0,0).dir(1,0,0);
 	
-	find_intersect(f, i, y, xs);
+	find_intersect(f, i, y, xs, -1);
 	
 	printf("f i = %f %i\n", f, i);
 	

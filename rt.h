@@ -21,6 +21,40 @@
 extern Real INF;
 
 
+class Grid {
+	public:
+	
+	int dx, dy, dz;
+	
+	vector<Elems> sp;
+	
+	Grid() {
+		dx = dy = dz = 4;
+		sp.resize(dx*dy*dz);
+	}
+	
+	Elems& get(Vector &ref) {
+		return sp[ref.x + ref.y*dx + ref.z*dx*dy];
+	}
+	
+	void add(Vector &ref, Elem *e) {
+		get(ref).push_back(ElemPtr(e));
+	}
+	
+	
+	~Grid() {
+		for (int i=0; i<sp.size(); ++i) {
+			sp[i].clear();
+		}
+	}
+	
+
+	
+};
+
+void inc_gref(Vector &ref, Grid &g, Ray &y);
+
+
 class Sphere: public Elem {
 	public:
 	// geometry
@@ -55,7 +89,7 @@ class Sphere: public Elem {
 		r2 = r*r;
 	}
 	
-	void fintersect(Real &f, Ray &y);
+	void fintersect(Real &f, Ray &y, Real max_f);
 	void normal(Vector &n, Point &p);
 	virtual Color& color() { return col; }	
 		
@@ -107,7 +141,7 @@ class Parallelogram: public Elem {
 	Parallelogram& b(Real x, Real y, Real z) { mov(_b, x,y,z); return *this; }
 	
 		
-	void fintersect(Real &f, Ray &y);
+	void fintersect(Real &f, Ray &y, Real max_f);
 	void normal(Vector &n, Point &p);		
 	Color& color() { return cyan; }	
 
@@ -131,7 +165,7 @@ class AABB: public Elem {
 		mov(this->center, center);
 	}
 		
-	void fintersect(Real &f, Ray &y);
+	void fintersect(Real &f, Ray &y, Real max_f);
 	void normal(Vector &n, Point &p);		
 	Color& color() { return yellow; }	
 
@@ -153,7 +187,7 @@ void fintersect_aabb(Real &f, const Ray &y, const Point &c, const Vector &r);
 void trace(Color &rcol, Ray &y, Elems &xs);
 
 
-
+extern Real EPS;
 
 
 

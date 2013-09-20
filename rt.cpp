@@ -51,7 +51,7 @@ void fintersect_plane(Real &f, Point &c, Vector &a, Vector &b, Point &p, Vector 
 }
 
 
-void Parallelogram::fintersect(Real &f, Ray &y) {
+void Parallelogram::fintersect(Real &f, Ray &y, Real max_f) {
 	Vector &d = y.dir();
 	
 	Vector cp;
@@ -145,7 +145,7 @@ void normal(Vector &n, Point &p, Elem &s) {
 	s.normal(n, p);
 }
 
-void AABB::fintersect(Real &f, Ray &y) {
+void AABB::fintersect(Real &f, Ray &y, Real max_f) {
 	fintersect_aabb(f, y, r, center);	
 }
 
@@ -157,7 +157,7 @@ void AABB::normal(Vector &n, Point &p) {
 	//cout << '&' << r << endl;
 	
 	for (int i=0; i<3; ++i) {
-		if (abs(n[i]) >= (r[i] - 0.0001)) {
+		if (abs(n[i]) >= (r[i] - 0.001)) {
 			
 		} else {
 			n[i] = 0.0;
@@ -168,53 +168,119 @@ void AABB::normal(Vector &n, Point &p) {
 	//cout << n << endl;
 	
 }
+
+
+void inc_gref(Vector &ref, Grid &g, Ray &y) {
+	// assert y._dir is normalized
+/*	
+	Vector cp;
+	sub(cp, c, y._pos);	
+	const Vector &v = y._dir;
 	
+	Real a,b;
+	
+	Real max_a = -INF, min_b = INF;
+		
+	for (int i = 0; i < 3; ++i) {
+		
+		Real ri = r[i], cpi = cp[i];
+		Real vi = v[i];
+		
+		if (vi == 0.0) {
+			if (-ri < cpi && cpi < ri) {
+				continue;
+			}
+			else {
+				f = INF;
+				return;
+			}
+		}
+		else {
+			Real cpv = cpi/vi;
+			Real rv = ri/vi;
+	
+			if (vi < 0) {
+				a = (cpi + ri)/vi;
+				b = (cpi - ri)/vi;
+			}
+			else if (vi > 0) {
+				a = (cpi - ri)/vi;
+				b = (cpi + ri)/vi;
+			}
+		}
+		
+		if (a > max_a) {
+			max_a = a;
+		}
+		
+		if (b < min_b) {
+			min_b = b;
+		}
+		
+	}
+
+
+	//std::cout << "max_a=" << max_a << std::endl;
+	//std::cout << "vd=" << vd << std::endl;
+
+	if ((max_a > 0) && (max_a < min_b)) {
+		f = max_a;  // abs(vd);
+		//Real max_a2 = max_a *max_a;
+		//f = sqrt(v.x * v.x * max_a2 + v.y * v.y * max_a2 + v.z * v.z * max_a2);
+		
+	} else {
+		f = INF;
+	}
+
+	*/
+}
+
 
 void fintersect_aabb(Real &f, const Ray &y, const Vector &r, const Point &c) {
 	// assert y._dir is normalized
 	
 	Vector cp;
-	sub(cp, c, y._pos);
-	
+	sub(cp, c, y._pos);	
 	const Vector &v = y._dir;
-		
-	Vector a, b;
-	Real k,l;
 	
-	int i = 0;
-	while (i < 3) {
-		if (v[i] < 0) {
-			a[i] = (cp[i] + r[i]) / v[i];
-			b[i] = (cp[i] - r[i]) / v[i];
+	Real a,b;
+	
+	Real max_a = -INF, min_b = INF;
+		
+	for (int i = 0; i < 3; ++i) {
+		
+		Real ri = r[i], cpi = cp[i];
+		
+		Real vvi = (Real)(1.0)/v[i];
+		
+		
+		if (vvi < 0)
+	    {
+			b = (cpi - ri)*vvi;
+			a = (cpi + ri)*vvi;
 		}
-		else if (v[i] > 0) {
-			a[i] = (cp[i] - r[i]) / v[i];
-			b[i] = (cp[i] + r[i]) / v[i];			
+		else if (vvi > 0) 
+		{
+			a = (cpi - ri)*vvi;
+			b = (cpi + ri)*vvi;
 		}
-		else if (v[i] == 0) {
-			if (abs(cp[i]) < r[i]) {
-				a[i] = -INF;
-				b[i] = INF;				
-			}
-			else {
-				//a[i] = INF;
-				//b[i] = -INF;
-				f = INF;
-				return;
-			}
+				
+		if (a > max_a) {
+			max_a = a;
 		}
-			
-		i += 1;
+		
+		if (b < min_b) {
+			min_b = b;
+		}
+		
 	}
 
-	Real max_a = max(a);
-	Real min_b = min(b);
-	
-	//std::cout << "a=" << a << std::endl;
-	//std::cout << "b=" << b << std::endl;
 
-	if (max_a < min_b && max_a > 0) {
-		f = max_a / v.x;
+	//std::cout << "max_a=" << max_a << std::endl;
+	//std::cout << "vd=" << vd << std::endl;
+
+	if ((max_a > 0) && (max_a < min_b)) {
+		f = max_a;  // abs(vd);
 		//Real max_a2 = max_a *max_a;
 		//f = sqrt(v.x * v.x * max_a2 + v.y * v.y * max_a2 + v.z * v.z * max_a2);
 		
@@ -224,16 +290,23 @@ void fintersect_aabb(Real &f, const Ray &y, const Vector &r, const Point &c) {
 
 }
 
-void Sphere::fintersect(Real &f, Ray &y) {
+
+
+void Sphere::fintersect(Real &f, Ray &y, Real max_f) {
 
 	Vector cp;
 	sub(cp, c, y.pos());
 	
-	Real icpd;
-	inn(icpd, cp, y.dir());
-	
 	Real cp2;
 	mul2(cp2, cp);
+	
+	/*if (cp2 > max_f*max_f) {
+		f = INF;
+		return;
+	}*/	
+	
+	Real icpd;
+	inn(icpd, cp, y.dir());
 	
 	Real delta = r2 - cp2 + icpd*icpd;
 
@@ -284,7 +357,8 @@ void find_intersect(Real &f, int &ii, Ray &y, Elems &xs, int skip) {
 	for (int i = 0; i < xs.size(); ++i) 
 	{
 		if (i != skip) {
-			xs[i]->fintersect(f1, y);
+			
+			xs[i]->fintersect(f1, y, f);
 			
 			if (EPSILON < f1 && f1 < f) {
 				f = f1;

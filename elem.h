@@ -11,7 +11,7 @@
 
 class Elem {
 	public:
-	virtual void fintersect(Real &f, Ray &y) = 0;
+	virtual void fintersect(Real &f, Ray &y, Real max_f) = 0;
 	virtual void normal(Vector &n, Point &p) = 0;
 	virtual Color& color() = 0;
 	

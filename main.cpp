@@ -16,7 +16,7 @@ namespace pt = boost::posix_time;
 pt::ptime t_start = pt::microsec_clock::local_time(); 
 
 
-uint width = 400, height = 400; 
+uint width = 500, height = 500; 
 
 #define BPP 4
 #define DEPTH 32
@@ -31,18 +31,19 @@ void destroy_world(Elems &xs) {
 	xs.clear();
 }
 
+
+
 void create_world(Elems &xs) {
 
 	Real a=2.0, b=1.5, c=1.0, t=2.8;
 	
-	Sphere  * s = NULL;
-	CSphere *ss=nullptr;
+	Sphere  * s = nullptr;
 	
 	/*
-	ss = new CSphere();
-	ss->center(10.0, a+b+b+c-t-1.0, 0).radius(c).fr();
-	mov(ss->col, white);
-	xs.push_back(ElemPtr(ss));
+	s = new Sphere();
+	s->center(10.0, a+b+b+c-t-1.0, 0).radius(c).fr();
+	mov(s->col, white);
+	xs.push_back(ElemPtr(s));
 	
 	
 	s = new Sphere();
@@ -80,8 +81,8 @@ void create_world(Elems &xs) {
 	(*s).center(10, -50000-t-a+1, 0).radius(50000).fr();
 	xs.push_back(ElemPtr(s));
 	*/
-	
-	/*for (int i=0; i<100; ++i) {
+	/*
+	for (int i=0; i<100; ++i) {
 		s = new Sphere();
 		(*s).center(
 			10 + rand1()*100.0, 
@@ -89,8 +90,8 @@ void create_world(Elems &xs) {
 			10 + rand1()*100.0
 		).radius(2).fr();
 		xs.push_back(ElemPtr(s));
-	}*/
-	
+	}
+	*/
 	s = NULL;
 	
 	/*Parallelogram *p = new Parallelogram();
@@ -105,7 +106,7 @@ void create_world(Elems &xs) {
 	//aabb = new AABB(Vector(2,2,2), Point(10,-t,6));
 	//xs.push_back(ElemPtr(aabb));
 	
-	for (int i=0; i<100; ++i) {
+	for (int i=0; i<20; ++i) {
 		aabb = new AABB(
 			Vector(1,1,1),
 			Point(
@@ -134,7 +135,7 @@ void putcolor(ostream &out, Color &c) {
 
 void render_ppm(ostream &out, Cam &c, Elems &xs) {
 	
-	uint width = 400, height = 400; 
+	uint width = 600, height = 600; 
 	uint maxval = 255;
 	
 	out << "P6" << " " 
