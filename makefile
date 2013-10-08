@@ -1,7 +1,7 @@
 # $@ name of the target
 # $* stem
 
-OBJS=rt.o color.o ray.o elem.o cam.o ga.o ioga.o
+OBJS=rt.o color.o ray.o elem.o cam.o ga.o ioga.o aabb.o
 
 main: main.o $(OBJS)
 	g++ -o $@ $^ -lSDL -pg

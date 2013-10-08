@@ -1,19 +1,19 @@
 // camera
-#ifndef CAM_H
-#define CAM_H
+#ifndef CAM_HPP
+#define CAM_HPP
 
-#include "ga.h"
-#include "ray.h"
-#include "elem.h"
-#include "rt.h"
+#include "ga.hpp"
+#include "ray.hpp"
+#include "elem.hpp"
+#include "rt.hpp"
 
 
 
 class Cam{
 	public:
-	Point pos;
-	Rotor rot;
-	Vector dir;
+	Point<> pos;
+	Rotor<> rot;
+	Vector<> dir;
 	
 	uint width, height; 
 	
@@ -32,8 +32,8 @@ class Cam{
 		hwidth = width*0.5; 
 		hheight = height*0.5; 
 		
-		// tan(fov_side) = scr_half_width / scr_dist;
-		// assume scr_half_width = h_width_pix
+		// tan(fov_side) = scr_HPPalf_width / scr_dist;
+		// assume scr_HPPalf_width = h_width_pix
 		scr_dist = hwidth / tan(fov_side);
 		
 		
@@ -45,23 +45,23 @@ class Cam{
 		
 	}
 	
-	inline void local(Vector &r, const Vector &b) {
+	inline void local(Vector<> &r, const Vector<> &b) {
 		::rotate(r, this->rot, b);
 	}
 	
-	inline Bivect local(const Bivect &b) {
-		Bivect r;
+	inline Bivect<> local(const Bivect<> &b) {
+		Bivect<> r;
 		::rotate(r, this->rot, b);
 		return r;
 	}
 	
 	
-	inline void move(const Vector &v) {
+	inline void move(const Vector<> &v) {
 		
 		add(this->pos, this->pos, v);
 	}	
 	
-	inline void rotate(const Rotor &r) {
+	inline void rotate(const Rotor<> &r) {
 		mul(this->rot, r, this->rot);
 		
 	}

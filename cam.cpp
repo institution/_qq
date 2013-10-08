@@ -1,4 +1,4 @@
-#include "cam.h"
+#include "cam.hpp"
 
 
 void Cam::render_pixel(Color &col, int i, int j, Elems &xs) {
@@ -7,23 +7,23 @@ void Cam::render_pixel(Color &col, int i, int j, Elems &xs) {
 	Real hor_angle = (i - hwidth) * fov_side/hwidth;
 	Real ver_angle = (j - hheight) * fov_down/hheight;
 	
-	Rotor hor_r, ver_r;
-	rotor(hor_r, Bivect(0,1,0), hor_angle);
-	rotor(ver_r, Bivect(1,0,0), ver_angle);
+	Rotor<> hor_r, ver_r;
+	rotor(hor_r, Bivect<>(0,1,0), hor_angle);
+	rotor(ver_r, Bivect<>(1,0,0), ver_angle);
 	
-	Vector rd;
+	Vector<> rd;
 	mov(rd, dir);
 	::rotate(rd, hor_r, rd);
 	::rotate(rd, ver_r, rd);
 	::rotate(rd, rot, rd);
 	*/
 	
-	//Rotor r;
+	//Rotor<> r;
 	//mul(r, ver_r, hor_r);
 	//::rotate(rd, r, dir);
 		
 	
-	Vector rd(
+	Vector<> rd(
 		scr_dist, 
 		j - hheight, 
 		i - hwidth

@@ -1,11 +1,11 @@
 // color
-#ifndef COLOR_H
-#define COLOR_H
+#ifndef COLOR_HPP
+#define COLOR_HPP
 
-#include "ga.h"
+#include "ga.hpp"
 
-typedef Vector Color;
-typedef Vector Col;
+typedef Vector<> Color;
+typedef Vector<> Col;
 
 
 extern Color white;

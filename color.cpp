@@ -1,4 +1,4 @@
-#include "color.h"
+#include "color.hpp"
 
 Color white(1,1,1);
 Color red(1,0,0);

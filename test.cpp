@@ -1,15 +1,32 @@
-#include "test.h"
+#include "test.hpp"
 
 extern Real EPS; // = std::numeric_limits<Real>::epsilon();
+
+void test_fintersect2_aabb() {
+
+	Real f1, f2;
+	fintersect2_aabb(f1, f2,
+		Point<>(-1,-1,-1), Point<>(1,1,1), 
+		Ray().pos(Point<>(2,2,2)).dir(Vector<>(-1,-1,-1)).normalize()
+	);
+	
+	
+	cout << f1 << '|' << sqrt(3.0f) << endl;
+	cout << f2 << '|' << sqrt(27.0f) << endl;
+	
+	assert(abs(f1 - sqrt(3.0f)) < 0.000001);
+	assert(abs(f2 - sqrt(27.0f))  < 0.000001);
+}
+
 
 
 void test_fintersect_aabb() {
 	Real f = -123;
 	
 	fintersect_aabb(f, 
-		Ray(Vector(-1,0,0), Point(10,0.4,0.2)), 
-		Vector(1,1,1),
-		Point(1,0,0)
+		Ray().dir(Vector<>(-1,0,0)).pos(Point<>(10,0.4,0.2)), 
+		Vector<>(1,1,1),
+		Point<>(1,0,0)
 	);	
 	
 	cout <<  f << endl;
@@ -17,12 +34,12 @@ void test_fintersect_aabb() {
 	
 	
 	fintersect_aabb(f, 
-		Ray(Vector(-1.0/sqrt(2.0),-1.0/sqrt(2.0),0), Point(2,1,0)), 
-		Vector(1,1,1),
-		Point(0,0,0)
+		Ray(Vector<>(-1.0/sqrt(2.0),-1.0/sqrt(2.0),0), Point<>(2,1,0)), 
+		Vector<>(1,1,1),
+		Point<>(0,0,0)
 	);	
 	
-	cout <<  f << '|' << sqrt(2.0) << endl;
+	cout << f << '|' << sqrt(2.0) << endl;
 	assert(abs(f - sqrt(2.0)) < EPS);
 		
 }
@@ -33,9 +50,9 @@ void test_fintersect_aabb_miss() {
 	Real f = -123;
 	
 	fintersect_aabb(f, 
-		Ray(Vector(-1,0,0), Point(10,1.1,0.2)), 
-		Vector(1,1,1),
-		Point(1,0,0)
+		Ray(Vector<>(-1,0,0), Point<>(10,1.1,0.2)), 
+		Vector<>(1,1,1),
+		Point<>(1,0,0)
 	);	
 	
 	cout <<  f << endl;
@@ -45,10 +62,10 @@ void test_fintersect_aabb_miss() {
 
 void test_rotate() {
 	
-	Rotor r;
-	rotor(r, Bivect(1,0,0), M_PI/2.0);
+	Rotor<> r;
+	rotor(r, Bivect<>(1,0,0), M_PI/2.0);
 	
-	Vector v(1,0,0);
+	Vector<> v(1,0,0);
 		
 	rotate(v, r, v);
 	
@@ -62,8 +79,8 @@ void test_fintersect_plane() {
 	
 	Real f = -123;
 	
-	Point c(1,1,-1); Vector a(2,0,0); Vector b(0,2,0);
-	Point p(0,0,-5); Vector d(0,0,1);
+	Point<> c(1,1,-1); Vector<> a(2,0,0); Vector<> b(0,2,0);
+	Point<> p(0,0,-5); Vector<> d(0,0,1);
 	
 	fintersect_plane(f, 
 		c, a, b, 
@@ -82,7 +99,7 @@ void test_parallelogram() {
 	y.pos(0,0,0).dir(1,2,0);
 	
 	Real f;
-	p.fintersect(f, y);
+	p.fintersect(f, y, 0.0);
 
 	printf("%f\n", f);
 	assert(f == 1.0);
@@ -97,7 +114,7 @@ void test_parallelogram2() {
 	y.pos(0,0,5).dir(0,0,-1);
 	
 	Real f;
-	p.fintersect(f, y);
+	p.fintersect(f, y, 0.0);
 
 	printf("%f\n", f);
 	assert(f == 5.0);
@@ -128,7 +145,7 @@ void test_fintersect() {
 }*/
 
 void test_inn(){
-	Vector a, b;
+	Vector<> a, b;
 	Real r;
 	
 	mov(a, 2,0,0);
@@ -140,8 +157,8 @@ void test_inn(){
 }
 
 void test_out() {
-	//Bivect ab;
-	//Vector a(1,2,3), b(1,2,3);
+	//Bivect<> ab;
+	//Vector<> a(1,2,3), b(1,2,3);
 	
 	//out(ab, a, b);
 	//assert(ab.xy == 0);
@@ -151,7 +168,7 @@ void test_out() {
 }
 
 void test_normalize(){
-	Vector a;
+	Vector<> a;
 		
 	mov(a, 1,2,3);
 	
@@ -169,10 +186,10 @@ void test_normal() {
 	Sphere s; 
 	s.radius(0).center(1,0,0);
 	
-	Point p;
+	Point<> p;
 	mov(p, 3,1,0);
 	
-	Vector n;
+	Vector<> n;
 	normal(n, p, s);
 	
 	//printf("n = %f %f %f\n", n.x, n.y, n.z);
@@ -185,7 +202,7 @@ void test_normal() {
 
 
 void test_point_on_ray() {
-	Point p;
+	Point<> p;
 	
 	Ray y;
 	y.pos(2,0,0).dir(-1,0,0);
@@ -224,7 +241,8 @@ void test_find_intersect() {
 byte do_test = 0;
 
 
-void test(){
+void test(){\
+	TEST(test_fintersect2_aabb);
 	TEST(test_fintersect_aabb_miss);
 	TEST(test_fintersect_aabb);
 	TEST(test_rotate);

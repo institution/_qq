@@ -3,11 +3,11 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <SDL/SDL.h>
 
-#include "ga.h"
+#include "ga.hpp"
 
-#include "rt.h"
+#include "rt.hpp"
 
-#include "cam.h"
+#include "cam.hpp"
 
 using namespace std;
 
@@ -103,13 +103,13 @@ void create_world(Elems &xs) {
 	
 	AABB *aabb = nullptr;
 	
-	//aabb = new AABB(Vector(2,2,2), Point(10,-t,6));
+	//aabb = new AABB(Vector<>(2,2,2), Point<>(10,-t,6));
 	//xs.push_back(ElemPtr(aabb));
 	
 	for (int i=0; i<20; ++i) {
 		aabb = new AABB(
-			Vector(1,1,1),
-			Point(
+			Vector<>(1,1,1),
+			Point<>(
 				10 + rand1()*100.0, 
 				10 + rand1()*100.0, 
 				10 + rand1()*100.0
@@ -184,7 +184,7 @@ int main_ppm(int argc, char* argv[]) {
 	
 	Cam c(width, height, fov_side, fov_down);	
 	mov(c.pos, 0,0.1,0);
-	rotor(c.rot, Bivect(0,1,0), 30.0*(M_PI/180));
+	rotor(c.rot, Bivect<>(0,1,0), (Real)(30.0 * (M_PI/180.0)));
 	
 	
 	float t = get_time();
@@ -294,7 +294,7 @@ int main()
 	
 	Cam c(width, height, fov_side, fov_down);	
 	mov(c.pos, 0,0.1,0);
-	rotor(c.rot, Bivect(0,1,0), 30.0*(M_PI/180));
+	rotor(c.rot, Bivect<>(0,1,0), (Real)(30.0*(M_PI/180)));
 	
 
     SDL_Surface *screen;
@@ -349,45 +349,45 @@ int main()
 
 		Real speed = 8.0;
 
-		Vector tmp;
+		Vector<> tmp;
 		if (keys[SDLK_a]) {
-			c.local(tmp, Vector(0,0,-speed * dtime));
+			c.local(tmp, Vector<>(0,0,-speed * dtime));
 			c.move(tmp);
 		}
 		
 		if (keys[SDLK_d]) {
-			c.local(tmp, Vector(0,0,speed * dtime));
+			c.local(tmp, Vector<>(0,0,speed * dtime));
 			c.move(tmp);
 		}
 		
 		if (keys[SDLK_w]) {
-			c.local(tmp, Vector(speed* dtime,0,0));
+			c.local(tmp, Vector<>(speed* dtime,0,0));
 			c.move(tmp);
 		}
 		
 		if (keys[SDLK_s]) {
-			c.local(tmp, Vector(-speed * dtime,0,0));
+			c.local(tmp, Vector<>(-speed * dtime,0,0));
 			c.move(tmp);
 		}
 		
-		Rotor rr;
+		Rotor<> rr;
 		
 		if (keys[SDLK_LEFT]) {
-			rotor(rr, Bivect(0,1,0), -5 * (M_PI/180));
+			rotor(rr, Bivect<>(0,1,0), -5 * (M_PI/180));
 			c.rotate(rr);
 		}
 		
 		if (keys[SDLK_RIGHT]) {
-			rotor(rr, Bivect(0,1,0), 5 * (M_PI/180));
+			rotor(rr, Bivect<>(0,1,0), 5 * (M_PI/180));
 			c.rotate(rr);
 		}
 		
 		
-		Bivect bb;
+		Bivect<> bb;
 		
 		
 		if (keys[SDLK_UP]) {
-			mov(bb, c.local(Bivect(1,0,0)));
+			mov(bb, c.local(Bivect<>(1,0,0)));
 			normalize(bb, bb);
 			
 			rotor(rr, bb, 5 * (M_PI/180));
@@ -395,7 +395,7 @@ int main()
 		}
 		
 		if (keys[SDLK_DOWN]) {
-			mov(bb, c.local(Bivect(1,0,0)));
+			mov(bb, c.local(Bivect<>(1,0,0)));
 			normalize(bb, bb);
 			
 			rotor(rr, bb, -5 * (M_PI/180));
@@ -414,11 +414,11 @@ int main()
 
 				case SDL_MOUSEMOTION:
 					
-					rotor(rr, Bivect(0,1,0), event.motion.xrel * (M_PI/180));
+					rotor(rr, Bivect<>(0,1,0), event.motion.xrel * (M_PI/180));
 					c.rotate(rr);
 					
 					
-					mov(bb, c.local(Bivect(1,0,0)));
+					mov(bb, c.local(Bivect<>(1,0,0)));
 					normalize(bb, bb);
 					
 					rotor(rr, bb, -event.motion.yrel * (M_PI/180));

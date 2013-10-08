@@ -1,5 +1,5 @@
 // ray tracer
-#include "rt.h"
+#include "rt.hpp"
 
 using namespace std;
 
@@ -10,23 +10,22 @@ Real EPSILON = std::numeric_limits<Real>::epsilon();
 Real EPS = std::numeric_limits<Real>::epsilon();
 
 
-typedef Vector Point;
 
 
 
 
 
 
-void fintersect_plane(Real &f, Point &c, Vector &a, Vector &b, Point &p, Vector &d) {
-	Vector cp;
+void fintersect_plane(Real &f, Point<> &c, Vector<> &a, Vector<> &b, Point<> &p, Vector<> &d) {
+	Vector<> cp;
 	sub(cp, c, p);
 	
-	Bivect P;
+	Bivect<> P;
 	out(P, a, b);
 	
-	Volume I(1);
+	Volume<> I(1);
 	
-	Vector n;
+	Vector<> n;
 	left(n, P, I);
 	
 	Real L, M;
@@ -52,16 +51,16 @@ void fintersect_plane(Real &f, Point &c, Vector &a, Vector &b, Point &p, Vector 
 
 
 void Parallelogram::fintersect(Real &f, Ray &y, Real max_f) {
-	Vector &d = y.dir();
+	Vector<> &d = y.dir();
 	
-	Vector cp;
+	Vector<> cp;
 	sub(cp, _pos, y.pos());
 	
-	Bivect P;
+	Bivect<> P;
 	out(P, _a, _b);
 	
-	Volume I(1);
-	Vector n;
+	Volume<> I(1);
+	Vector<> n;
 	left(n, P, I);
 	
 	Real L, M;
@@ -84,12 +83,12 @@ void Parallelogram::fintersect(Real &f, Ray &y, Real max_f) {
 	}
 	
 	
-	Vector x;
+	Vector<> x;
 	mul(x, y.dir(), f);
 	sub(x, x, cp);
 	// x = f*d - cp
 			
-	Vector aP;
+	Vector<> aP;
 	Real L1, M1;
 	left(aP, _a, P);
 	inn(L1, x, aP);
@@ -106,7 +105,7 @@ void Parallelogram::fintersect(Real &f, Ray &y, Real max_f) {
 		return;
 	}
 	
-	Vector bP;
+	Vector<> bP;
 	Real L2, M2;
 	left(bP, _b, P);
 	inn(L2, x, bP);
@@ -124,9 +123,9 @@ void Parallelogram::fintersect(Real &f, Ray &y, Real max_f) {
 	
 }
 
-void Parallelogram::normal(Vector &n, Point &p) {
-	Bivect ab;
-	Volume t;
+void Parallelogram::normal(Vector<> &n, Point<> &p) {
+	Bivect<> ab;
+	Volume<> t;
 	t.I = 1.0;
 	out(ab, _a, _b);
 	left(n, ab, t);
@@ -136,12 +135,12 @@ void Parallelogram::normal(Vector &n, Point &p) {
 
 
 
-void Sphere::normal(Vector &n, Point &p) {
+void Sphere::normal(Vector<> &n, Point<> &p) {
 	sub(n, p, this->center());
 	normalize(n, n); 
 }
 
-void normal(Vector &n, Point &p, Elem &s) {
+void normal(Vector<> &n, Point<> &p, Elem &s) {
 	s.normal(n, p);
 }
 
@@ -149,66 +148,151 @@ void AABB::fintersect(Real &f, Ray &y, Real max_f) {
 	fintersect_aabb(f, y, r, center);	
 }
 
-void AABB::normal(Vector &n, Point &p) {
+void AABB::normal(Vector<> &n, Point<> &p) {
 	
 	sub(n, p, center);
 	
 	//cout << '&' << n << endl;
 	//cout << '&' << r << endl;
 	
+	
+	//Real l = 0.0;
 	for (int i=0; i<3; ++i) {
-		if (abs(n[i]) >= (r[i] - 0.001)) {
-			
+		if (abs(n[i]) >= (r[i] - 0.0001)) {
+			//l += n[i];
 		} else {
 			n[i] = 0.0;
 		}
 	}
+	
+	//div(n, n, sqrt(l));
 	
 	normalize(n, n);
 	//cout << n << endl;
 	
 }
 
-
-void inc_gref(Vector &ref, Grid &g, Ray &y) {
-	// assert y._dir is normalized
-/*	
-	Vector cp;
-	sub(cp, c, y._pos);	
-	const Vector &v = y._dir;
+void vdir(Vector<> &n, const Point<> &p, const Vector<> &aa, const Vector<> &bb) {
 	
-	Real a,b;
-	
-	Real max_a = -INF, min_b = INF;
+	for (int i=0; i<3; ++i) {
 		
-	for (int i = 0; i < 3; ++i) {
-		
-		Real ri = r[i], cpi = cp[i];
-		Real vi = v[i];
-		
-		if (vi == 0.0) {
-			if (-ri < cpi && cpi < ri) {
-				continue;
-			}
-			else {
-				f = INF;
-				return;
-			}
+		if (p[i] >= aa[i] - 0.001) {
+			n[i] = 1.0;
+		}
+		else if (p[i] <= bb[i] + 0.001) {
+			n[i] = -1.0;
 		}
 		else {
-			Real cpv = cpi/vi;
-			Real rv = ri/vi;
-	
-			if (vi < 0) {
-				a = (cpi + ri)/vi;
-				b = (cpi - ri)/vi;
-			}
-			else if (vi > 0) {
-				a = (cpi - ri)/vi;
-				b = (cpi + ri)/vi;
-			}
+			n[i] = 0.0;
 		}
 		
+	}
+		
+}
+
+/* 
+    nref -- index of next cell intersected by ray starting from cref
+	grid -- Grid 
+	cref -- cell index, Vector<>3<int>
+	ray -- Ray(pos, dir)
+*/
+/*
+void next_ref(Vector<>& nref, const Grid &grid, const Vector<> &cref, const Ray &ray) {
+	
+	Vector<> aa, bb;
+	
+	vmul(aa, grid.cdim, cref);
+	add(bb, aa, grid.cdim);
+	
+	Real f;
+	
+	foutintersect_aabb(f, aa, bb, ray);
+	
+	f * ray.dir() + ray.pos();
+
+	
+}*/
+
+bool first(Point<int>& iter, const Grid &g, const Ray &ray) {
+	
+	Point<> p;
+	Real f1, f2;
+	fintersect2_aabb(f1, f2, g.aabb(), ray);
+	
+	if (f1 < INF) {
+		
+		point_on_ray(p, ray, f1);
+		
+		for(int i=0; i<3; ++i) {
+			iter[i] = (int)(p[i] / g.cdim()[i]);
+		}
+		
+		return 1;
+	}
+	else {
+		return 0;
+	}	
+}
+
+bool next(Point<int>& iter, const Grid &g, const Ray &ray) {
+	
+	Point<> a,b;
+	for(int i=0; i<3; ++i) {
+		a[i] = (Real)iter[i] * g.cdim()[i];
+		b[i] = a[i] + g.cdim()[i];
+	}
+	
+	Real f1, f2;
+	
+	//fintersect2_aabb(f1, f2, Aabb(a,b), ray);
+	
+	if (f2 < INF) {
+		
+		//vdir()
+		
+		//iter
+		
+		
+		return 1;
+	}
+	else {
+		return 0;
+	}
+	
+}
+
+
+
+
+
+// find intersection points beetween ray and aabb if any
+void fintersect2_aabb(Real &f1, Real &f2, const Aabb &ab, const Ray &ray) {
+	
+	Point<> aap;
+	sub(aap, ab.a(), ray.pos());
+	
+	Point<> bbp;
+	sub(bbp, ab.b(), ray.pos());
+	
+	Real max_a = -INF, min_b = INF;
+	Real vvi, a, b;
+	
+	
+	for (int i = 0; i < 3; ++i) {
+		
+		vvi = (Real)(1.0) / ray._dir[i];
+		
+		if (vvi < 0)
+	    {
+			b = aap[i] * vvi;
+			a = bbp[i] * vvi;
+		}
+		else // if (vvi > 0) 
+		{
+			a = aap[i] * vvi;
+			b = bbp[i] * vvi;
+		}
+				
 		if (a > max_a) {
 			max_a = a;
 		}
@@ -216,50 +300,43 @@ void inc_gref(Vector &ref, Grid &g, Ray &y) {
 		if (b < min_b) {
 			min_b = b;
 		}
-		
+				
 	}
 
-
-	//std::cout << "max_a=" << max_a << std::endl;
-	//std::cout << "vd=" << vd << std::endl;
-
-	if ((max_a > 0) && (max_a < min_b)) {
-		f = max_a;  // abs(vd);
-		//Real max_a2 = max_a *max_a;
-		//f = sqrt(v.x * v.x * max_a2 + v.y * v.y * max_a2 + v.z * v.z * max_a2);
-		
+	if (max_a <= min_b) {
+		f1 = max_a;
+		f2 = min_b;		
 	} else {
-		f = INF;
-	}
-
-	*/
+		f1 = f2 = INF;
+	}	
 }
 
 
-void fintersect_aabb(Real &f, const Ray &y, const Vector &r, const Point &c) {
+void fintersect_aabb(Real &f, const Ray &y, const Vector<> &r, const Point<> &c) {
 	// assert y._dir is normalized
 	
-	Vector cp;
-	sub(cp, c, y._pos);	
-	const Vector &v = y._dir;
+	Real min_f = 0.0;
+	const Vector<> &v = y._dir;
 	
-	Real a,b;
+	Vector<> cp;
+	sub(cp, c, y._pos);	
 	
 	Real max_a = -INF, min_b = INF;
-		
+	Real a, b;
+	Real ri, cpi, vvi;	
+	
 	for (int i = 0; i < 3; ++i) {
 		
-		Real ri = r[i], cpi = cp[i];
-		
-		Real vvi = (Real)(1.0)/v[i];
-		
-		
+		ri = r[i];
+		cpi = cp[i];
+		vvi = (Real)(1.0)/v[i];
+				
 		if (vvi < 0)
 	    {
 			b = (cpi - ri)*vvi;
 			a = (cpi + ri)*vvi;
 		}
-		else if (vvi > 0) 
+		else // if (vvi > 0) 
 		{
 			a = (cpi - ri)*vvi;
 			b = (cpi + ri)*vvi;
@@ -275,15 +352,11 @@ void fintersect_aabb(Real &f, const Ray &y, const Vector &r, const Point &c) {
 		
 	}
 
-
 	//std::cout << "max_a=" << max_a << std::endl;
 	//std::cout << "vd=" << vd << std::endl;
 
-	if ((max_a > 0) && (max_a < min_b)) {
-		f = max_a;  // abs(vd);
-		//Real max_a2 = max_a *max_a;
-		//f = sqrt(v.x * v.x * max_a2 + v.y * v.y * max_a2 + v.z * v.z * max_a2);
-		
+	if ((max_a > min_f) && (max_a <= min_b)) {
+		f = max_a;		
 	} else {
 		f = INF;
 	}
@@ -294,7 +367,7 @@ void fintersect_aabb(Real &f, const Ray &y, const Vector &r, const Point &c) {
 
 void Sphere::fintersect(Real &f, Ray &y, Real max_f) {
 
-	Vector cp;
+	Vector<> cp;
 	sub(cp, c, y.pos());
 	
 	Real cp2;
@@ -321,7 +394,7 @@ void Sphere::fintersect(Real &f, Ray &y, Real max_f) {
 /*
 void Sphere::fintersect(Real &f, Ray &y) {
 
-	Vector cp;
+	Vector<> cp;
 	sub(cp, this->center(), y.pos());
 	
 	Real icpd;
@@ -341,7 +414,7 @@ void Sphere::fintersect(Real &f, Ray &y) {
 }*/
 
 
-void point_on_ray(Point &p, Ray &y, Real f) {
+void point_on_ray(Point<> &p, const Ray &y, const Real f) {
 	mul(p, y.dir(), f);
 	add(p, p, y.pos());
 }
@@ -368,7 +441,7 @@ void find_intersect(Real &f, int &ii, Ray &y, Elems &xs, int skip) {
 	}	
 }
 
-Point light(-700.0, 1000.0, 400.0);
+Point<> light(-700.0, 1000.0, 400.0);
 
 
 
@@ -381,7 +454,7 @@ void trace(Color &rcol, Ray &y, Elems &xs) {
 		mov(rcol, blue);
 	}
 	else {
-		Vector n;
+		Vector<> n;
 		Ray shadow;
 	
 		Elem &s = *(xs[ii]);
@@ -494,15 +567,15 @@ void render() {
 	//Color col(64,64,64);
 	//s.color = &col;
 	
-	Point cam_pos(0,0.1,0);
-	Vector cam_dir(1,-0.1,-0.1);
+	Point<> cam_pos(0,0.1,0);
+	Vector<> cam_dir(1,-0.1,-0.1);
 	//normalize(cam_dir, cam_dir);
 	
-	Real scr_width = 1, scr_height = 1;
+	Real scr_width = 1, scr_HPPeight = 1;
 	Real hheight = height/2.0;
 	Real hwidth = width/2.0;
 	
-	//Point light(-20,50,35);
+	//Point<> light(-20,50,35);
 
 	int j = height;
 	int i;
@@ -513,7 +586,7 @@ void render() {
 		while (i < width) {
 			 
 			Real x = 1; // scr_dist
-			Real y = j * scr_height/height - scr_height/2;
+			Real y = j * scr_HPPeight/height - scr_HPPeight/2;
 			Real z = i * scr_width/width - scr_width/2;
 			
 			x = width; // scr_dist
