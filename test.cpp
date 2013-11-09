@@ -5,8 +5,9 @@ extern Real EPS; // = std::numeric_limits<Real>::epsilon();
 void test_fintersect2_aabb() {
 
 	Real f1, f2;
+	
 	fintersect2_aabb(f1, f2,
-		Point<>(-1,-1,-1), Point<>(1,1,1), 
+		Aabb().a(Point<>(-1,-1,-1)).b(Point<>(1,1,1)),
 		Ray().pos(Point<>(2,2,2)).dir(Vector<>(-1,-1,-1)).normalize()
 	);
 	
@@ -213,35 +214,95 @@ void test_point_on_ray() {
 
 }
 
+void test_grid_index_of() {
+	Grid gr;
+	gr.ab_res(
+		Aabb().a(Vector<>(-10,-10,-10)).b(Vector<>(10,10,10)),
+		Vector<>(2,2,2)
+	);
+	
+	Vector<int> k;
+	k = gr.index_of(Vector<>(-10,0,0));
+	
+	cout << k << endl;
+	assert(vle(Vector<int>(0,0,0), k));
+	
+}
+
+
+
+void test_grid_iter() {
+	Grid gr;
+	gr.ab_res(
+		Aabb().a(Vector<>(-10,-10,-10)).b(Vector<>(10,10,10)),
+		Vector<>(2,2,2)
+	);
+	
+	Vector<> x1(7, 6, 9);
+	Elem* e1 = new Sphere(x1, 2.2);
+	gr.add(x1, e1);
+	
+	GridIter it(gr);
+	
+	auto e = it.next();
+		
+	cout << "e1=" << e1 << endl;
+	cout << "e=" << e << endl;
+	assert(e1 == e);
+	
+	
+	
+}
+
 void test_find_intersect() {
-	Real f; int i; Ray y; Elems xs;
+	Real f; int i; Ray y; 
+	Elems xs;
 	
-	xs.resize(2);
-	xs[0].reset(new Sphere());
-	xs[1].reset(new Sphere());
+	Grid gr;
+	gr.ab_res(
+		Aabb(
+			Point<>(-10,-10,-10), 
+			Point<>(10,10,10)
+		),
+		Vector<>(2,2,2)
+	);
 	
-	((Sphere&)*xs[0]).center(+10, 0, 0).radius(1);
-	((Sphere&)*xs[1]).center(-10, 0, 0).radius(1);
+	Vector<> x1(+7, 0, 0);
+	Vector<> x2(-7, 0, 0);
+	Elem* e1 = new Sphere(x1, 1);
+	Elem* e2 = new Sphere(x2, 1);
+	gr.add(x1, e1);
+	gr.add(x2, e2);
 	
-	y.pos(-8,0,0).dir(1,0,0);
+	y.pos(-1,0,0).dir(1,0,0);
 	
-	find_intersect(f, i, y, xs, -1);
+	Elem *e = nullptr;
+
+	find_intersect(f, e, y, gr, nullptr);
 	
-	printf("f i = %f %i\n", f, i);
+	
+	// printf("f i = %f %i\n", f, i);
+	cout << "f=" << f << endl;
+	cout << "e1=" << e1 << endl;
+	cout << "e2=" << e2 << endl;
+	cout << "e=" << e << endl;
 	
 	assert(f < INF);
-	assert(f == 17.0);
-	if (f < INF) assert(i == 0); // undefined when f == INF
+	assert(f == 7.0);
 	
-
+	assert(e1 == e);
+	
+	
+	
 }
 
 #define TEST(F) printf("------------------------------- %s \n", #F); F(); printf("OK\n")
 	
-byte do_test = 0;
 
-
-void test(){\
+void test()
+{	
+	TEST(test_grid_index_of);
+	TEST(test_grid_iter);
 	TEST(test_fintersect2_aabb);
 	TEST(test_fintersect_aabb_miss);
 	TEST(test_fintersect_aabb);

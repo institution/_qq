@@ -38,12 +38,21 @@ class Ray {
 		mov(_pos, x,y,z); return *this; 
 	}
 	
+	Point<> point_at(const Real f) const {
+		Point<> p;
+		mul(p, dir(), f);
+		add(p, p, y.pos());
+		return p;
+	}
+	
 	// freezers
 	Ray& normalize() {		
 		::normalize(_dir, _dir); return *this; 
 	}
 	
 };
+
+
 
 
 #endif

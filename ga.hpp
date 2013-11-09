@@ -33,6 +33,12 @@ inline void mul(R &res, const R a, const R b) {
 
 // Vector<R> --------------------------------------------------------------
 
+
+//Vector<Real>(const Vector<int> v) const {
+//	rs[0] = v[0]; rs[1] = v[1]; rs[2] = v[2]; 
+//}
+	
+
 template <class R = float>
 class Vector {
 	public:
@@ -48,6 +54,8 @@ class Vector {
 	inline Vector<R>(R xx, R yy, R zz) { 
 		rs[0] = xx; rs[1] = yy; rs[2] = zz; 
 	}	
+
+	
 	
 	//inline R x() { return rs[0]; }
 	//inline R y() { return rs[0]; }
@@ -63,6 +71,11 @@ class Vector {
 		return this->rs[i];
 	}
 	
+	//template<class V>
+	//inline operator V() { 
+	//	return V(rs[0], rs[1], rs[2]); 
+	//}
+
 	
 };
 
@@ -190,11 +203,16 @@ template<typename R>
 inline bool eq(const Vector<R> &p, const Real x, const Real y, const Real z) {
 	return p.x == x && p.y == y && p.z == z;
 }
+
 template<typename R>
 inline bool vle(const Vector<R> &a, const Vector<R> &b) {
 	return a.x <= b.x && a.y <= b.y && a.z <= b.z;
 }
 
+template<typename R>
+inline bool vlt(const Vector<R> &a, const Vector<R> &b) {
+	return a.x < b.x && a.y < b.y && a.z < b.z;
+}
 
 //----------------------------------------------------------------------
 template<typename R = float>

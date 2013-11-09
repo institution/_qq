@@ -142,6 +142,8 @@ void Sphere::normal(Vector<> &n, Point<> &p) {
 
 void normal(Vector<> &n, Point<> &p, Elem &s) {
 	s.normal(n, p);
+	
+	
 }
 
 void AABB::fintersect(Real &f, Ray &y, Real max_f) {
@@ -265,51 +267,6 @@ bool next(Point<int>& iter, const Grid &g, const Ray &ray) {
 
 
 
-// find intersection points beetween ray and aabb if any
-void fintersect2_aabb(Real &f1, Real &f2, const Aabb &ab, const Ray &ray) {
-	
-	Point<> aap;
-	sub(aap, ab.a(), ray.pos());
-	
-	Point<> bbp;
-	sub(bbp, ab.b(), ray.pos());
-	
-	Real max_a = -INF, min_b = INF;
-	Real vvi, a, b;
-	
-	
-	for (int i = 0; i < 3; ++i) {
-		
-		vvi = (Real)(1.0) / ray._dir[i];
-		
-		if (vvi < 0)
-	    {
-			b = aap[i] * vvi;
-			a = bbp[i] * vvi;
-		}
-		else // if (vvi > 0) 
-		{
-			a = aap[i] * vvi;
-			b = bbp[i] * vvi;
-		}
-				
-		if (a > max_a) {
-			max_a = a;
-		}
-		
-		if (b < min_b) {
-			min_b = b;
-		}
-				
-	}
-
-	if (max_a <= min_b) {
-		f1 = max_a;
-		f2 = min_b;		
-	} else {
-		f1 = f2 = INF;
-	}	
-}
 
 
 void fintersect_aabb(Real &f, const Ray &y, const Vector<> &r, const Point<> &c) {
@@ -423,32 +380,39 @@ void point_on_ray(Point<> &p, const Ray &y, const Real f) {
 
 
 
-void find_intersect(Real &f, int &ii, Ray &y, Elems &xs, int skip) {
+void find_intersect(Real &f, Elem* &e, Ray &y, Grid &gr, Elem *skip) {
 	Real f1;
+	Elem* c = nullptr;	
+	
+	f = INF;
+	e = nullptr;  
+	
+	GridIter itr(gr);
 		
-	f = INF;	
-	for (int i = 0; i < xs.size(); ++i) 
+	while (c = itr.next())
 	{
-		if (i != skip) {
+		if (c != skip) {
 			
-			xs[i]->fintersect(f1, y, f);
+			c->fintersect(f1, y, f);
 			
 			if (EPSILON < f1 && f1 < f) {
 				f = f1;
-				ii = i;
+				e = c;
 			}
 		}
 	}	
+	
 }
 
 Point<> light(-700.0, 1000.0, 400.0);
 
 
 
-void trace(Color &rcol, Ray &y, Elems &xs) {
-	Real f; int ii;
+void trace(Color &rcol, Ray &y, Grid &gr) {
+	Real f;
+	Elem* e1;
 	
-	find_intersect(f, ii, y, xs, -1);
+	find_intersect(f, e1, y, gr, nullptr);
 	
 	if (f == INF) {
 		mov(rcol, blue);
@@ -457,7 +421,7 @@ void trace(Color &rcol, Ray &y, Elems &xs) {
 		Vector<> n;
 		Ray shadow;
 	
-		Elem &s = *(xs[ii]);
+		Elem &s = *e1;
 	
 		// contact point
 		point_on_ray(shadow.pos(), y, f);
@@ -478,9 +442,10 @@ void trace(Color &rcol, Ray &y, Elems &xs) {
 			mov(rcol, black);
 		}
 		else {
-			Real f2; int ii2;
+			Real f2; 
+			Elem * e2;
 			//trace(shadow_col, shadow, objs);
-			find_intersect(f2, ii2, shadow, xs, ii);
+			find_intersect(f2, e2, shadow, gr, e1);
 			
 			if (f2 < INF) {
 				mov(rcol, black);

@@ -10,6 +10,7 @@
 #include <vector>
 #include <limits>
 #include <memory>
+#include <string>
 
 #include "ga.hpp"
 #include "ioga.hpp"
@@ -18,74 +19,10 @@
 #include "color.hpp"
 #include "ray.hpp"
 #include "aabb.hpp"
+#include "grid.hpp"
+
 
 extern Real INF;
-
-
-
-
-class Grid {
-	vector<Elems> _space;
-	
-	Aabb _ab;
-	Vector<> _res; // log2(res)
-	Vector<> _cdim;
-		
-public:
-	Grid() {}
-	
-	
-	// getters
-	inline const Aabb& ab() const { return _ab; }	
-	inline const Aabb& aabb() const { return _ab; }	
-	inline const Vector<>& res() const { return _res; }
-	inline const Vector<>& cdim() const { return _cdim; }
-	
-	// setters
-	inline Grid& ab_res(const Aabb& ab, const Vector<>& res) {
-		_ab = ab;
-		_res = res;
-		vdiv(_cdim, ab.b() - ab.a(), res);		
-		_space.resize(res[0]*res[1]*res[2]);
-		return *this;
-	}
-	inline Grid& res_ab(const Vector<>& res, const Aabb& ab) {
-		return ab_res(ab, res);
-	}
-	
-	
-	/*
-	Elems& get(Vector<> &ref) {
-		
-		assert(vle(ref, res));
-		
-		return sp[int(ref.x) + int(ref.y)*rx + int(ref.z)*rx*ry];
-	}
-	
-	//void add(Vector<> &ref, Elem *e) {
-	//	get(ref).push_back(ElemPtr(e));
-	//}
-	
-	void insert(Elem *e, Vector<> &p) {
-		Vector<> ref;
-		
-		vdiv(ref, p, cell_dim);
-		
-		get(ref).push_back(ElemPtr(e));
-	}
-	*/
-	
-	~Grid() {
-		for (int i=0; i<_space.size(); ++i) {
-			_space[i].clear();
-		}
-	}
-	
-
-	
-};
-
-
 
 
 
@@ -206,6 +143,8 @@ class AABB: public Elem {
 	void fintersect(Real &f, Ray &y, Real max_f);
 	void normal(Vector<> &n, Point<> &p);		
 	Color& color() { return yellow; }	
+	
+	
 
 };
 
@@ -214,14 +153,12 @@ void fintersect_plane(Real &f, Point<> &c, Vector<> &a, Vector<> &b, Point<> &p,
 void fintersect(Real &f1, Real &f2, Ray &y, Sphere &s);
 void normal(Vector<> &n, Point<> &p, Elem &s);
 void point_on_ray(Point<> &p, const Ray &y, const Real f);
-void find_intersect(Real &f, int &ii, Ray &y, Elems &xs, int skip);
+void find_intersect(Real &f, Elem* &e, Ray &y, Grid &gr, Elem *skip);
 
 void fintersect_aabb(Real &f, const Ray &y, const Point<> &c, const Vector<> &r);
 
 
-void fintersect2_aabb(Real &f1, Real &f2, const Aabb &ab, const Ray &ray);
-
-void trace(Color &rcol, Ray &y, Elems &xs);
+void trace(Color &rcol, Ray &y, Grid &gr);
 
 
 extern Real EPS;

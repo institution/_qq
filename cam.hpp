@@ -66,7 +66,8 @@ class Cam{
 		
 	}
 	
-	void render_pixel(Color &col, int i, int j, Elems &xs);
+	void render_pixel(Color &col, int i, int j, Grid &gr);
+	
 };
 
 

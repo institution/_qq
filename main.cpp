@@ -26,20 +26,24 @@ double rand1() {
 	return (((double)std::rand()) / RAND_MAX);
 }
 
-
-void destroy_world(Elems &xs) {
-	xs.clear();
+double rand2(float a, float b) {
+	return (((double)std::rand()) / RAND_MAX) * (b-a) + a;
 }
 
 
 
-void create_world(Elems &xs) {
 
-	Real a=2.0, b=1.5, c=1.0, t=2.8;
+
+void create_world(Grid &gr) {
+
+	
 	
 	Sphere  * s = nullptr;
 	
 	/*
+	  
+	Real a=2.0, b=1.5, c=1.0, t=2.8;
+	 
 	s = new Sphere();
 	s->center(10.0, a+b+b+c-t-1.0, 0).radius(c).fr();
 	mov(s->col, white);
@@ -106,15 +110,26 @@ void create_world(Elems &xs) {
 	//aabb = new AABB(Vector<>(2,2,2), Point<>(10,-t,6));
 	//xs.push_back(ElemPtr(aabb));
 	
+	Vector<> l = gr.ab().a();
+	Vector<> u = gr.ab().b();
+	
 	for (int i=0; i<20; ++i) {
+		
+		Point<> pos(
+			rand2(l[0], u[0]), 
+			rand2(l[1], u[1]), 
+			rand2(l[2], u[2])
+		);
+		
 		aabb = new AABB(
 			Vector<>(1,1,1),
-			Point<>(
-				10 + rand1()*100.0, 
-				10 + rand1()*100.0, 
-				10 + rand1()*100.0
-			)
-		);		
+			pos
+		);
+		
+		
+		Vector<int> rr = gr.index_of(pos);
+		Elems& xs = gr.get(rr);
+				
 		xs.push_back(ElemPtr(aabb));
 	}
 	
@@ -133,7 +148,7 @@ void putcolor(ostream &out, Color &c) {
 }
 
 
-void render_ppm(ostream &out, Cam &c, Elems &xs) {
+void render_ppm(ostream &out, Cam &c, Grid &gr) {
 	
 	uint width = 600, height = 600; 
 	uint maxval = 255;
@@ -152,7 +167,7 @@ void render_ppm(ostream &out, Cam &c, Elems &xs) {
 		i = 0;
 		while (i < width) {
 				
-			c.render_pixel(rcol, i, j, xs);	
+			c.render_pixel(rcol, i, j, gr);	
 			putcolor(out, rcol);
 
 			//putcolor(black);
@@ -177,8 +192,17 @@ double get_time() {
 }
 
 int main_ppm(int argc, char* argv[]) {
-	Elems xs;
-	create_world(xs);
+	Grid gr;
+	gr.ab_res(
+		Aabb(Vector<>(0,0,0), Vector<>(100,100,100)), 
+		Vector<>(2,2,2)
+	);
+	
+	create_world(gr);
+	
+	
+	
+	
 	
 	Real fov_side = 45.0, fov_down=45.0;
 	
@@ -189,11 +213,10 @@ int main_ppm(int argc, char* argv[]) {
 	
 	float t = get_time();
 	
-	render_ppm(cout, c, xs);
+	render_ppm(cout, c, gr);
 	
 	cerr << "render time: " <<  get_time() - t << endl;
-	
-	destroy_world(xs);
+
 }
 
 
@@ -214,7 +237,7 @@ void setpixel(SDL_Surface *screen, int x, int y, const Color &c)
 
 
 
-void render_sdl(SDL_Surface *screen, Cam &c, Elems &xs) {
+void render_sdl(SDL_Surface *screen, Cam &c, Grid &gr) {
 	
 	
 	if(SDL_MUSTLOCK(screen)) 
@@ -238,7 +261,8 @@ void render_sdl(SDL_Surface *screen, Cam &c, Elems &xs) {
         x = 0;
         while(x < screen->w) 
         {
-			c.render_pixel(rcol, x, y, xs);	
+			
+			c.render_pixel(rcol, x, y, gr);	
 			
 			setpixel(screen, x, y, rcol);
 	
@@ -250,6 +274,8 @@ void render_sdl(SDL_Surface *screen, Cam &c, Elems &xs) {
     if(SDL_MUSTLOCK(screen)) SDL_UnlockSurface(screen);
   
     SDL_Flip(screen); 
+    
+    
 }
 
 
@@ -271,11 +297,11 @@ string get_filename(const string& name, const string& ext){
 	return "";  
 }
 
-void take_screenshoot(Cam &c, Elems &xs) {
+void take_screenshoot(Cam &c, Grid &gr) {
 	string s = get_filename("a", ".ppm");
 	if (!s.empty()) {
 		ofstream of(s);
-		render_ppm(of, c, xs);
+		render_ppm(of, c, gr);
 		of.close();
 		cerr << "screenshoot saved to " << s << " ";
 	}
@@ -287,8 +313,24 @@ void take_screenshoot(Cam &c, Elems &xs) {
 int main()
 {
 	
-	Elems xs;
-	create_world(xs);
+	Grid gr;
+	gr.ab_res(
+		Aabb(Vector<>(0,0,0), Vector<>(100,100,100)), 
+		Vector<>(2,2,2)
+	);
+	
+	create_world(gr);
+	
+	cout << "create world ok..." << endl;
+
+	GridIter it(gr);
+	Elem *x;
+	while (x = it.next()) {
+		cout << x->color() << endl;
+	}
+	
+	cout << "listing ok..." << endl;
+	
 	
 	Real fov_side = 45.0, fov_down=45.0;
 	
@@ -325,14 +367,14 @@ int main()
     {
 		if (take_screenshoot_timeout >= 1.0) 
 		{			
-			take_screenshoot(c, xs);			
+			take_screenshoot(c, gr);			
 		}
 		
 		
 		
 		stime = get_time();
 
-		render_sdl(screen, c, xs);
+		render_sdl(screen, c, gr);
 
 		licz += 1;
 		dtime = get_time() - stime;
@@ -444,7 +486,6 @@ int main()
 
     SDL_Quit();
   	
-	destroy_world(xs);
 
     return 0;
 }

@@ -1,7 +1,7 @@
 #include "cam.hpp"
 
 
-void Cam::render_pixel(Color &col, int i, int j, Elems &xs) {
+void Cam::render_pixel(Color &col, int i, int j, Grid &gr) {
 	
 	/*
 	Real hor_angle = (i - hwidth) * fov_side/hwidth;
@@ -28,6 +28,7 @@ void Cam::render_pixel(Color &col, int i, int j, Elems &xs) {
 		j - hheight, 
 		i - hwidth
 	);
+	
 	normalize(rd, rd);
 	::rotate(rd, rot, rd);
 	
@@ -35,7 +36,7 @@ void Cam::render_pixel(Color &col, int i, int j, Elems &xs) {
 	Ray ray;
 	ray.dir(rd.x,rd.y,rd.z).pos(pos);
 			
-	trace(col, ray, xs);
+	trace(col, ray, gr);
 	
 }
 
