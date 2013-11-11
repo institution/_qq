@@ -47,7 +47,8 @@ void fintersect2_aabb(Real &f1, Real &f2, const Aabb &ab, const Ray &ray) {
 		f1 = max_a;
 		f2 = min_b;		
 	} else {
-		f1 = f2 = INF;
+		f1 = INF;
+		f2 = INF;
 	}	
 }
 

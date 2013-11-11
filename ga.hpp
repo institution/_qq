@@ -26,8 +26,11 @@ inline void mul2(R &r, const R a) {
 	inn(r, a, a);
 }
 
-template <class R>
-inline void mul(R &res, const R a, const R b) {
+inline void mul(float &res, const float a, const float b) {
+	res = a * b;	
+}
+
+inline void mul(int &res, const int a, const int b) {
 	res = a * b;	
 }
 
@@ -52,10 +55,17 @@ class Vector {
 	
 	inline Vector<R>() {}
 	inline Vector<R>(R xx, R yy, R zz) { 
-		rs[0] = xx; rs[1] = yy; rs[2] = zz; 
+		rs[0] = xx; rs[1] = yy; rs[2] = zz;
 	}	
 
-	
+	template<class U>
+	explicit Vector<R>(const Vector<U> & r)
+	{
+		for (int i=0; i< 3; ++i) {
+			rs[i] = (R)(r[i]);			
+		}
+	}
+
 	
 	//inline R x() { return rs[0]; }
 	//inline R y() { return rs[0]; }
@@ -83,8 +93,7 @@ template<class R = Real>
 using Point = Vector<Real>;
 
 
-
-template<typename R>
+template<class R>
 inline Vector<R> operator-(const Vector<R>& a, const Vector<R>& b) {
 	Vector<R> c;
 	for (int i=0; i<3; ++i) {
@@ -92,6 +101,16 @@ inline Vector<R> operator-(const Vector<R>& a, const Vector<R>& b) {
 	}
 	return c;
 }
+
+template<class R>
+inline Vector<R> operator+(const Vector<R>& a, const Vector<R>& b) {
+	Vector<R> c;
+	for (int i=0; i<3; ++i) {
+		c[i] = a[i] + b[i];
+	}
+	return c;
+}
+
 
 template<typename R>
 inline Real max(const Vector<R>& v) {
@@ -202,6 +221,11 @@ inline void rev(Vector<R> &r, const Vector<R> &a) {
 template<typename R>
 inline bool eq(const Vector<R> &p, const Real x, const Real y, const Real z) {
 	return p.x == x && p.y == y && p.z == z;
+}
+
+template<typename R>
+inline bool eq(const Vector<R> &p, const Vector<R> &q) {
+	return p.x == q.x && p.y == q.y && p.z == q.z;
 }
 
 template<typename R>

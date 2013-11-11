@@ -225,7 +225,22 @@ void test_grid_index_of() {
 	k = gr.index_of(Vector<>(-10,0,0));
 	
 	cout << k << endl;
-	assert(vle(Vector<int>(0,0,0), k));
+	assert(eq(Vector<int>(0,1,1), k));
+}
+
+// regression
+void test_grid_index_of_2() {
+	
+	Grid gr = Grid::box_res(
+		Aabb(Vector<>(0,0,0), Vector<>(100,100,100)),
+		Vector<>(10,10,10)
+	);
+	
+	Vector<int> k;
+	k = gr.index_of(Vector<>(0.00789726619, 0.105758078, -0.00211606687));
+	
+	cout << k << endl;
+	assert(eq(Vector<int>(0,0,-1), k));
 	
 }
 
@@ -238,9 +253,14 @@ void test_grid_iter() {
 		Vector<>(2,2,2)
 	);
 	
-	Vector<> x1(7, 6, 9);
+	Vector<> x1(-7, -6, -9);
 	Elem* e1 = new Sphere(x1, 2.2);
 	gr.add(x1, e1);
+	
+	Vector<> x2(7, 6, 9);
+	Elem* e2 = new Sphere(x2, 2.2);
+	gr.add(x2, e2);
+	
 	
 	GridIter it(gr);
 	
@@ -250,9 +270,103 @@ void test_grid_iter() {
 	cout << "e=" << e << endl;
 	assert(e1 == e);
 	
-	
+	e = it.next();
+		
+	cout << "e2=" << e2 << endl;
+	cout << "e=" << e << endl;
+	assert(e2 == e);
 	
 }
+
+void test_grid_iter_along_ray_no_hit()
+{
+	Grid gr;
+	gr.ab_res(
+		Aabb().a(Vector<>(-10,-10,-10)).b(Vector<>(10,10,10)),
+		Vector<>(2,2,2)
+	);
+	
+	Ray ray;
+	ray.dir(Vector<>(1,0,0)).pos(Vector<>(-20, 5, 5));
+	
+	auto it = gr.iter_along_ray(ray);
+	auto e = it.next();			
+	assert(e == nullptr);	
+}
+
+
+void test_grid_iter_along_ray_border_away()
+{
+	Grid gr;
+	gr.ab_res(
+		Aabb().a(Vector<>(-10,-10,-10)).b(Vector<>(10,10,10)),
+		Vector<>(2,2,2)
+	);
+	
+	Ray ray;
+	ray.dir(Vector<>(0,1,0)).pos(Vector<>(10,9,10));
+	
+	auto it = gr.iter_along_ray(ray);
+	auto e = it.next();			
+	assert(e == nullptr);	
+}
+
+void test_grid_iter_along_ray_total_miss_grid()
+{
+	Grid gr;
+	gr.ab_res(
+		Aabb().a(Vector<>(-10,-10,-10)).b(Vector<>(10,10,10)),
+		Vector<>(2,2,2)
+	);
+	
+	Ray ray;
+	ray.dir(Vector<>(1,0,0)).pos(Vector<>(20, 50, 60));
+	
+	auto it = gr.iter_along_ray(ray);
+	auto e = it.next();			
+	assert(e == nullptr);	
+}
+
+void test_grid_iter_along_ray()
+{
+	
+	Grid gr;
+	gr.ab_res(
+		Aabb().a(Vector<>(-10,-10,-10)).b(Vector<>(10,10,10)),
+		Vector<>(2,2,2)
+	);
+	
+	Vector<> x1(-7, -6, -9);
+	Elem* e1 = new Sphere(x1, 2.2);
+	gr.add(x1, e1);
+	
+	Vector<> x2(7, 9, 9);
+	Elem* e2 = new Sphere(x2, 2.2);
+	gr.add(x2, e2);
+	
+	
+	Ray ray;
+	ray.dir(Vector<>(1,0,0)).pos(Vector<>(-20, 5, 5));
+	
+	auto it = gr.iter_along_ray(ray);
+	
+	auto e = it.next();
+		
+	cout << "e2=" << e2 << endl;
+	cout << "e=" << e << endl;
+	assert(e2 == e);
+
+	e = it.next();
+			
+	assert(e == nullptr);
+	
+}
+
+
+
+
+
+
 
 void test_find_intersect() {
 	Real f; int i; Ray y; 
@@ -302,7 +416,12 @@ void test_find_intersect() {
 void test()
 {	
 	TEST(test_grid_index_of);
+	TEST(test_grid_index_of_2);
 	TEST(test_grid_iter);
+	TEST(test_grid_iter_along_ray);
+	TEST(test_grid_iter_along_ray_no_hit);
+	TEST(test_grid_iter_along_ray_border_away);
+	TEST(test_grid_iter_along_ray_total_miss_grid);	
 	TEST(test_fintersect2_aabb);
 	TEST(test_fintersect_aabb_miss);
 	TEST(test_fintersect_aabb);

@@ -11,6 +11,7 @@
 #include "ray.hpp"
 #include "elem.hpp"
 #include "rt.hpp"
+#include "grid.hpp"
 
 using namespace std;
 

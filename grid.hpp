@@ -24,6 +24,14 @@
 extern Real INF;
 
 
+
+
+
+class IterCellAlongRay;
+class IterCell;
+
+template <class C> class IterElem;
+
 class Grid {
 	vector<Elems> _space;
 	
@@ -35,12 +43,28 @@ class Grid {
 public:
 	Grid() {}
 	
+	Grid(const Aabb& box, const Vector<>& res) {
+		ab_res(box, res);
+	}
+	
+	static Grid box_res(const Aabb& box, const Vector<>& res) {
+		return Grid(box, res);
+	}
 	
 	// getters
+	
+	// axis-aligned bounding box
 	inline const Aabb& ab() const { return _ab; }	
 	inline const Aabb& aabb() const { return _ab; }	
+	inline const Aabb& box() const { return _ab; }
+	
+	// resolution
 	inline const Vector<>& res() const { return _res; }
+	
+	// cell dimension
 	inline const Vector<>& cdim() const { return _cdim; }
+	
+	// cells array
 	inline const vector<Elems>& cells() const { return _space; }
 	inline vector<Elems>& cells() { return _space; }
 	
@@ -53,8 +77,7 @@ public:
 		assert(vlt(ab.a(), ab.b()));
 		
 		vdiv(_bidx, ab.a(), _cdim);
-		
-		
+				
 		_space.resize(res[0]*res[1]*res[2]);
 		return *this;
 	}
@@ -80,30 +103,30 @@ public:
 		es.push_back(ElemPtr(e));
 	}
 	
-	Vector<int> index_of(const Vector<>& p) {
+	Vector<int> index_of(const Vector<>& p) const {
 		Vector<> ref;		
 		vdiv(ref, p, _cdim);
 		sub(ref, ref, _bidx);		
-		return Vector<int>(ref[0], ref[1], ref[2]);
+		return Vector<int>(floor(ref[0]), floor(ref[1]), floor(ref[2]));
 	}
 	
-	Aabb get_cell_aabb(cellind) {
+	Aabb get_cell_aabb(Vector<int> cellind) {
 		Vector<> low, upp;
 		
-		mul(low, _cdim, cellind);
-		add(low, low, _ab.lower());
-		add(upp, low, _cdim);
+		vmul(low, _cdim, Vector<float>(cellind));
+		::add(low, low, _ab.lower());
+		::add(upp, low, _cdim);
 		
 		return Aabb(low, upp);
 	}
 	
-	bool is_bound(const Vector<int>& ind) {
+	bool is_bound(const Vector<int>& ind) const {
 		
 		if (!vle(Vector<int>(0,0,0), ind))
 			return false;
 		
-		if (!vlt(ref, Vector<int>(_res[0], _res[1], _res[2])))
-			return false
+		if (!vlt(ind, Vector<int>(_res[0], _res[1], _res[2])))
+			return false;
 		
 		return true;
 	}
@@ -116,11 +139,11 @@ public:
 		}
 	}
 	
-
+	// iterators
+	IterElem<IterCellAlongRay> iter_along_ray(Ray & y);
+	IterElem<IterCell> iter_all();
 	
 };
-
-
 
 
 
@@ -129,33 +152,20 @@ class IterCell{
 	int indcell_;
 	
 public:
-	IterElem(Grid& gr): _gr(gr) {
-		seek();
-	}
-	
-	void seek() {
-		indcell_ = 0; 		
-	}
-	
-	
-	Elem* next() {
-		// return next (not yet returned) element in grid in undefined order
+	IterCell(Grid& gr): grid_(gr), indcell_(0) {
 		
-		auto& cellss = grid_.cells();
+	}
+		
+	typedef Elems* type;
+	
+	Elems* next() {
+		// return next (not yet returned) cell in grid in undefined order
+		auto& cs = grid_.cells();
 			
 		// iter over cells
-		while (_ic < cs.size()) 
+		while (indcell_ < cs.size()) 
 		{				
-			// iter over elements
-			while (_ie < cs[_ic].size()) {
-				auto ind_elem = _ie;
-				++_ie;  // modify state before return
-				// yield
-				return cs[_ic][ind_elem].get();
-			}
-							
-			_ie = 0;
-			++_ic;
+			return &cs[indcell_++];			
 		}
 				
 		return nullptr;		
@@ -164,111 +174,154 @@ public:
 	
 };
 
-class IterElem {
-	Grid& _gr;
-	int _ic, _ie;
-	
-public:
-	IterElem(Grid& gr): _gr(gr) {
-		seek();
-	}
-	
-	void seek() {
-		_ic = 0; 
-		_ie = 0;
-	}
-	
-	
-	Elem* next() {
-		// return next (not yet returned) element in grid in undefined order
-		
-		auto& cs = _gr.cells();
-			
-		// iter over cells
-		while (_ic < cs.size()) 
-		{				
-			// iter over elements
-			while (_ie < cs[_ic].size()) {
-				auto ind_elem = _ie;
-				++_ie;  // modify state before return
-				// yield
-				return cs[_ic][ind_elem].get();
-			}
-							
-			_ie = 0;
-			++_ic;
-		}
-				
-		return nullptr;		
-	}
-	
-	
-};
 
 
 class IterCellAlongRay {
 	// refs
-	const Ray  &ray_ ;  // ray ref
-	const Grid &grid_;  // grid ref
+	Ray  &ray_ ;  // ray ref
+	Grid &grid_;  // grid ref
 	
 	// state
 	Vector<int> cellind_;
-	bool cellind_valid_   
+	bool cellind_valid_;   
 	Real minf_, maxf_;
 
 	
 public:
-	IterCellAlongRay(Grid &grid, Ray &ray): grid_(grid), ray_(ray) {
-		seek();
-	}
 	
-	void seek() {
-		minf_ = -INF; // may be inside, if outside then 0 is enougth
-		maxf_ = +INF;
-		
-		// first cell
+	IterCellAlongRay(Grid &grid, Ray &ray): grid_(grid), ray_(ray) {
+
+		// find first cell ind
+		Real f1, f2;
 		fintersect2_aabb(f1, f2, grid_.aabb(), ray_);
 		
 		if (f2 < INF) {
-			Point<> p;
-			point_on_ray(p, ray_, f1 + 0.01);
-			
-			Point<int> cellind = grid_.index_of(p);	
-			
-			cell_ = &grid_.get(cellind);
+			auto f = (0 < f1) ? f1 : (Real)0;
+			auto p = ray_.point_at(f + 0.01);			
+			cellind_ = grid_.index_of(p);			
 		}
 		else {
-			// outside
-			cell_ = nullptr;
+			cellind_ = Vector<int>(-1, -1,-1);
 		}
 	}
 	
+	typedef Elems * type;
 	
-	Elem* next() {
+	Elems * next() {
 		// return next cell along ray
-		Elems * curr = cell_;
+		Elems * ret;
 		
-		
-		// first cell
-		fintersect2_aabb(f1, f2, grid_.get_cell_aabb(cellind), ray_);
-		
-		if (f2 < INF) {
-			Point<> p;
-			point_on_ray(p, ray_, f1 + 0.01);
+		if (grid_.is_bound(cellind_)) {
+			// ret val
+			ret = &grid_.get(cellind_);
 			
-			Point<int> cellind = grid_.index_of(p);	
-			
-			cell_ = &grid_.get(cellind);
+			// alter state
+			auto cbox = grid_.get_cell_aabb(cellind_);
+						
+			Real f1, f2;
+			fintersect2_aabb(f1, f2, cbox, ray_);
+
+			if (f2 < INF) {
+
+				auto p = ray_.point_at(f2 + 0.01);
+				
+				auto new_cellind = grid_.index_of(p);	
+				
+				assert(!eq(new_cellind, cellind_));
+				cellind_ = new_cellind;
+			}
+			else {
+				cellind_ = Vector<int>(-1,-1,-1);
+			}
+
 		}
 		else {
-			// outside
-			cell_ = nullptr;
+			ret = nullptr;			
 		}
+		
+		return ret;
+	}	
+	
+};
+
+
+
+template <class C>
+class IterElem {
+	C icells_;
+	int indelem_;
+	Elems* currcell_;
+
+public:
+
+	IterElem(C icells): icells_(icells) {
+		indelem_ = 0;
+		currcell_ = icells_.next();
+	}
+
+	typedef Elem* type;
+
+	Elem* next() {
+		// return next (not yet returned) element in grid in undefined order
+
+		// iter over cells
+		while (currcell_) {
+
+			// iter over elements
+			while (indelem_ < currcell_->size()) {
+				return ((*currcell_)[indelem_++]).get();
+			}
+
+			indelem_ = 0;			
+			currcell_ = icells_.next();
+		}
+
+		return nullptr;
+	}
+
+
+};
+
+
+
+
+
+
+// old iter
+class GridIter {
+	IterCell icells_;
+	int indelem_;
+	Elems* currcell_;
+	
+public:
+	
+	GridIter(Grid& gr): icells_(gr) {
+		indelem_ = 0;
+		currcell_ = icells_.next();
+	}
+	
+	typedef Elem* type;
+	
+	Elem* next() {
+		// return next (not yet returned) element in grid in undefined order
+			
+		// iter over cells
+		while (currcell_) {
+		
+			// iter over elements
+			while (indelem_ < currcell_->size()) {
+				return ((*currcell_)[indelem_++]).get();
+			}
+			
+			indelem_ = 0;			
+			currcell_ = icells_.next();
+		}
+				
+		return nullptr;
 	}
 	
 	
 };
-
 
 
 #endif

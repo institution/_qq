@@ -34,7 +34,7 @@ double rand2(float a, float b) {
 
 
 
-void create_world(Grid &gr) {
+void create_world(Grid &gr, int n) {
 
 	
 	
@@ -113,7 +113,7 @@ void create_world(Grid &gr) {
 	Vector<> l = gr.ab().a();
 	Vector<> u = gr.ab().b();
 	
-	for (int i=0; i<20; ++i) {
+	for (int i=0; i < n; ++i) {
 		
 		Point<> pos(
 			rand2(l[0], u[0]), 
@@ -192,13 +192,12 @@ double get_time() {
 }
 
 int main_ppm(int argc, char* argv[]) {
-	Grid gr;
-	gr.ab_res(
+	auto gr = Grid::box_res(
 		Aabb(Vector<>(0,0,0), Vector<>(100,100,100)), 
-		Vector<>(2,2,2)
+		Vector<>(10,10,10)
 	);
 	
-	create_world(gr);
+	create_world(gr, 100);
 	
 	
 	
@@ -313,13 +312,12 @@ void take_screenshoot(Cam &c, Grid &gr) {
 int main()
 {
 	
-	Grid gr;
-	gr.ab_res(
+	Grid gr = Grid::box_res(
 		Aabb(Vector<>(0,0,0), Vector<>(100,100,100)), 
-		Vector<>(2,2,2)
+		Vector<>(4,4,4)
 	);
 	
-	create_world(gr);
+	create_world(gr, 20);
 	
 	cout << "create world ok..." << endl;
 

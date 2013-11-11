@@ -40,8 +40,8 @@ class Ray {
 	
 	Point<> point_at(const Real f) const {
 		Point<> p;
-		mul(p, dir(), f);
-		add(p, p, y.pos());
+		mul(p, this->dir(), f);
+		add(p, p, this->pos());
 		return p;
 	}
 	

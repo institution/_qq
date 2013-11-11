@@ -20,6 +20,7 @@
 #include "ray.hpp"
 #include "aabb.hpp"
 #include "grid.hpp"
+#include "intersect.hpp"
 
 
 extern Real INF;

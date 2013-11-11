@@ -13,7 +13,7 @@
 extern Real INF;
 
 
-void fintersect2_aabb(Real &f1, Real &f2, const Aabb &ab, const Ray &ray);
+void fintersect2_aabb(Real &f1, Real &f2, Aabb const& ab, Ray const& ray);
 
-
+		
 #endif

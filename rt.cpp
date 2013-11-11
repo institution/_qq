@@ -1,4 +1,3 @@
-// ray tracer
 #include "rt.hpp"
 
 using namespace std;
@@ -382,12 +381,12 @@ void point_on_ray(Point<> &p, const Ray &y, const Real f) {
 
 void find_intersect(Real &f, Elem* &e, Ray &y, Grid &gr, Elem *skip) {
 	Real f1;
-	Elem* c = nullptr;	
+	Elem* c;	
 	
+	e = nullptr;
 	f = INF;
-	e = nullptr;  
 	
-	GridIter itr(gr);
+	auto itr = gr.iter_along_ray(y);
 		
 	while (c = itr.next())
 	{
@@ -405,8 +404,7 @@ void find_intersect(Real &f, Elem* &e, Ray &y, Grid &gr, Elem *skip) {
 }
 
 Point<> light(-700.0, 1000.0, 400.0);
-
-
+cre
 
 void trace(Color &rcol, Ray &y, Grid &gr) {
 	Real f;
